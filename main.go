@@ -6,8 +6,11 @@ import (
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 	"github.com/youpy/go-wav"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -31,16 +34,15 @@ func main() {
 	}
 	if *Encoding {
 		Encode(*Filename, *OutputFile)
+	} else {
+		Decode(*Filename, *OutputFile)
 	}
 
 }
 
 func Encode(filename, OutputFile string) {
-	// I have no idea what I am doing
-	fmt.Println("Bop")
-	if len(os.Args) <= 1 {
-		log.Fatal("You need to tell me what file to encode.")
-	}
+	log.Println("Encoding file...")
+
 	file, _ := os.Open(filename)
 
 	outputpac, _ := os.OpenFile(OutputFile, os.O_CREATE, 600)
@@ -87,6 +89,54 @@ func Encode(filename, OutputFile string) {
 	}
 
 }
+
+func Decode(filename, OutputFile string) {
+	log.Println("Decoding file")
+	b, e := ioutil.ReadFile(filename)
+	if e != nil {
+		log.Fatal("cannot read input file.")
+	}
+	// outputwav, e := os.OpenFile(OutputFile, os.O_CREATE, 600)
+	if e != nil {
+		log.Fatal("cannot open output file")
+	}
+	// var numSamples uint32 = 999999
+	// var numChannels uint16 = 2
+	// var sampleRate uint32 = 44100
+	// var bitsPerSample uint16 = 16
+	// writer := wav.NewWriter(outputwav, numSamples, numChannels, sampleRate, bitsPerSample)
+
+	lines := strings.Split(string(b), "\n")
+
+	for _, line := range lines {
+		var prams []float64
+		prams = make([]float64, 5)
+		bits := strings.Split(line, ",")
+
+		if len(bits) != 5 {
+			if len(bits) == 1 {
+				break
+			}
+			log.Fatal("Invalid PAC file. ", len(bits))
+		}
+		for k, v := range bits {
+			prams[k], e = strconv.ParseFloat(v, 64)
+			if e != nil {
+				log.Fatal("unable to decode part of PAC file")
+			}
+		}
+
+	}
+}
+
+// -	// Settings for output
+// -	var numSamples uint32 = 999999
+// -	var numChannels uint16 = 2
+// -	var sampleRate uint32 = 44100
+// -	var bitsPerSample uint16 = 16
+// -	writer := wav.NewWriter(output, numSamples, numChannels, sampleRate, bitsPerSample)
+
+// -		writer.WriteSamples(samplez)
 
 var degree = 5
 
