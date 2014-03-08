@@ -15,6 +15,8 @@ import (
 )
 
 var EncodeBlockSize int = 8
+var LastBlockSample int = 0
+var PolySize int = 5
 
 func main() {
 	// I have no idea what I am doing
@@ -67,6 +69,10 @@ func Encode(filename, OutputFile string) {
 		}
 
 		BlockesProcessed++
+		XBlock := make([]float64, EncodeBlockSize)
+		for k, _ := range XBlock {
+			XBlock[k] = float64(k)
+		}
 		var SamplePointer int = 0 // max is EncodeBlockSize
 		for _, sample := range samples {
 			sam := wav.Sample{}
@@ -78,7 +84,7 @@ func Encode(filename, OutputFile string) {
 			SampleBlock[SamplePointer] = float64(MonoVal)
 			SamplePointer++
 			if SamplePointer == EncodeBlockSize {
-				out := GetPolyResults([]float64{0, 1, 2, 3, 4, 5, 6, 7}, SampleBlock)
+				out := GetPolyResults(XBlock, SampleBlock)
 				Line := fmt.Sprintf("%f,%f,%f,%f,%f\n", out[0], out[1], out[2], out[3], out[4])
 				outputpac.Write([]byte(Line))
 				SamplePointer = 0
@@ -151,11 +157,13 @@ func GetSamplesFromPoly(prams []float64) (out []int) {
 				(prams[3] * math.Pow(float64(k), 3)) +
 				(prams[2] * math.Pow(float64(k), 2)) +
 				(prams[1] * float64(k)) + prams[0])
+		if k == 0 {
+			out[k] = (out[k] + LastBlockSample) / 2
+		}
 	}
+	LastBlockSample = out[EncodeBlockSize-1]
 	return out
 }
-
-var degree = 5
 
 func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	m := len(yGiven)
@@ -170,7 +178,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		// https://github.com/skelterjohn/go.matrix/issues/11
 		return []float64{0, 0, 0, 0, 0} // Send it back, There is nothing sane here.
 	}
-	n := degree + 1
+	n := PolySize + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
 	x := matrix.Zeros(m, n)
 	for i := 0; i < m; i++ {
