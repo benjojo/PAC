@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/skelterjohn/go.matrix" // daa59528eefd43623a4c8e36373a86f9eef870a2
 	"github.com/youpy/go-wav"
@@ -11,23 +12,41 @@ import (
 
 func main() {
 	// I have no idea what I am doing
+	Encoding := flag.Bool("encode", false, "true if you want to encode")
+	Decoding := flag.Bool("decode", false, "true if you want to decode")
+	Filename := flag.String("in", "", "What file the output sould be read from")
+	OutputFile := flag.String("out", "", "What file the output sould be written to")
+	flag.Parse()
+
+	if *Encoding && *Decoding {
+		log.Fatal("You can't do both!")
+	}
+	if *Filename == "" || *OutputFile == "" {
+		log.Fatal("Please give both input and output.")
+	}
+
 	fmt.Println("Bop")
 	if len(os.Args) <= 1 {
 		log.Fatal("You need to tell me what file to encode.")
 	}
-	file, _ := os.Open(os.Args[1])
+	if *Encoding {
+		Encode(*Filename, *OutputFile)
+	}
 
-	output, _ := os.OpenFile("./out.wav", os.O_CREATE, 600)
-	outputpac, _ := os.OpenFile("./out.pac", os.O_CREATE, 600)
+}
+
+func Encode(filename, OutputFile string) {
+	// I have no idea what I am doing
+	fmt.Println("Bop")
+	if len(os.Args) <= 1 {
+		log.Fatal("You need to tell me what file to encode.")
+	}
+	file, _ := os.Open(filename)
+
+	outputpac, _ := os.OpenFile(OutputFile, os.O_CREATE, 600)
 
 	reader := wav.NewReader(file)
 
-	// Settings for output
-	var numSamples uint32 = 999999
-	var numChannels uint16 = 2
-	var sampleRate uint32 = 44100
-	var bitsPerSample uint16 = 16
-	writer := wav.NewWriter(output, numSamples, numChannels, sampleRate, bitsPerSample)
 	BlockesProcessed := 0
 	// End of settings for output
 	var SampleBlock []float64
@@ -65,7 +84,6 @@ func main() {
 		}
 
 		// fmt.Println(len(samplez), len(samples))
-		writer.WriteSamples(samplez)
 	}
 
 }
