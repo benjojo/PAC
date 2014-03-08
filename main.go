@@ -168,7 +168,7 @@ func GetSamplesFromPoly(prams []float64) (out []int) {
 func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 	m := len(yGiven)
 	if m != len(xGiven) {
-		return []float64{0, 0, 0, 0, 0} // Send it back, There is nothing sane here.
+		return make([]float64, PolySize) // Send it back, There is nothing sane here.
 	}
 	if m < 5 {
 		// Prevent the processing of really small datasets, This is becauase there
@@ -176,7 +176,7 @@ func GetPolyResults(xGiven []float64, yGiven []float64) []float64 {
 		// if some (small) amount of values are entered. I don't know why this happens
 		// (Otherwise I would have fixed it) but the URL for the github issue is:
 		// https://github.com/skelterjohn/go.matrix/issues/11
-		return []float64{0, 0, 0, 0, 0} // Send it back, There is nothing sane here.
+		return make([]float64, PolySize) // Send it back, There is nothing sane here.
 	}
 	n := PolySize + 1
 	y := matrix.MakeDenseMatrix(yGiven, m, 1)
