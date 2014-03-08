@@ -8,10 +8,13 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 )
+
+var EncodeBlockSize int = 8
 
 func main() {
 	// I have no idea what I am doing
@@ -52,7 +55,7 @@ func Encode(filename, OutputFile string) {
 	BlockesProcessed := 0
 	// End of settings for output
 	var SampleBlock []float64
-	SampleBlock = make([]float64, 8)
+	SampleBlock = make([]float64, EncodeBlockSize)
 	for {
 		samplez := make([]wav.Sample, 0)
 		samples, err := reader.ReadSamples()
@@ -64,7 +67,7 @@ func Encode(filename, OutputFile string) {
 		}
 
 		BlockesProcessed++
-		var SamplePointer int = 0 // max is 8
+		var SamplePointer int = 0 // max is EncodeBlockSize
 		for _, sample := range samples {
 			sam := wav.Sample{}
 			L := reader.IntValue(sample, 0)
@@ -74,7 +77,7 @@ func Encode(filename, OutputFile string) {
 			// Now we add it to the staging array
 			SampleBlock[SamplePointer] = float64(MonoVal)
 			SamplePointer++
-			if SamplePointer == 8 {
+			if SamplePointer == EncodeBlockSize {
 				out := GetPolyResults([]float64{0, 1, 2, 3, 4, 5, 6, 7}, SampleBlock)
 				Line := fmt.Sprintf("%f,%f,%f,%f,%f\n", out[0], out[1], out[2], out[3], out[4])
 				outputpac.Write([]byte(Line))
@@ -96,17 +99,19 @@ func Decode(filename, OutputFile string) {
 	if e != nil {
 		log.Fatal("cannot read input file.")
 	}
-	// outputwav, e := os.OpenFile(OutputFile, os.O_CREATE, 600)
+	outputwav, e := os.OpenFile(OutputFile, os.O_CREATE, 600)
 	if e != nil {
 		log.Fatal("cannot open output file")
 	}
-	// var numSamples uint32 = 999999
-	// var numChannels uint16 = 2
-	// var sampleRate uint32 = 44100
-	// var bitsPerSample uint16 = 16
-	// writer := wav.NewWriter(outputwav, numSamples, numChannels, sampleRate, bitsPerSample)
+
+	var numSamples uint32 = 999999
+	var numChannels uint16 = 2
+	var sampleRate uint32 = 44100
+	var bitsPerSample uint16 = 16
+	writer := wav.NewWriter(outputwav, numSamples, numChannels, sampleRate, bitsPerSample)
 
 	lines := strings.Split(string(b), "\n")
+	samplez := make([]wav.Sample, 0)
 
 	for _, line := range lines {
 		var prams []float64
@@ -125,18 +130,30 @@ func Decode(filename, OutputFile string) {
 				log.Fatal("unable to decode part of PAC file")
 			}
 		}
+		out := GetSamplesFromPoly(prams)
 
+		for _, v := range out {
+			sam := wav.Sample{}
+
+			sam.Values[0] = v
+			sam.Values[1] = v
+			samplez = append(samplez, sam)
+		}
 	}
+	writer.WriteSamples(samplez)
 }
 
-// -	// Settings for output
-// -	var numSamples uint32 = 999999
-// -	var numChannels uint16 = 2
-// -	var sampleRate uint32 = 44100
-// -	var bitsPerSample uint16 = 16
-// -	writer := wav.NewWriter(output, numSamples, numChannels, sampleRate, bitsPerSample)
-
-// -		writer.WriteSamples(samplez)
+func GetSamplesFromPoly(prams []float64) (out []int) {
+	out = make([]int, EncodeBlockSize)
+	for k, _ := range out {
+		out[k] = int(
+			(5 * math.Pow(float64(k), 4)) +
+				(4 * math.Pow(float64(k), 3)) +
+				(3 * math.Pow(float64(k), 2)) +
+				(2 * float64(k)) + 1)
+	}
+	return out
+}
 
 var degree = 5
 
