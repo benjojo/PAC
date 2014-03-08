@@ -15,7 +15,7 @@ import (
 )
 
 var EncodeBlockSize int = 8
-var PolySize int = 5
+var PolySize int = 4
 
 func main() {
 	// I have no idea what I am doing
@@ -84,7 +84,7 @@ func Encode(filename, OutputFile string) {
 			SamplePointer++
 			if SamplePointer == EncodeBlockSize {
 				out := GetPolyResults(XBlock, SampleBlock)
-				Line := fmt.Sprintf("%f,%f,%f,%f,%f\n", out[0], out[1], out[2], out[3], out[4])
+				Line := fmt.Sprintf("%f,%f,%f,%f\n", out[0], out[1], out[2], out[3])
 				outputpac.Write([]byte(Line))
 				SamplePointer = 0
 			}
@@ -120,10 +120,10 @@ func Decode(filename, OutputFile string) {
 
 	for _, line := range lines {
 		var prams []float64
-		prams = make([]float64, 5)
+		prams = make([]float64, PolySize)
 		bits := strings.Split(line, ",")
 
-		if len(bits) != 5 {
+		if len(bits) != PolySize {
 			if len(bits) == 1 {
 				break
 			}
@@ -154,8 +154,8 @@ func GetSamplesFromPoly(prams []float64) (out []int) {
 	out = make([]int, EncodeBlockSize)
 	for k, _ := range out {
 		out[k] = int(
-			(prams[4] * math.Pow(float64(k), 4)) +
-				(prams[3] * math.Pow(float64(k), 3)) +
+
+			(prams[3] * math.Pow(float64(k), 3)) +
 				(prams[2] * math.Pow(float64(k), 2)) +
 				(prams[1] * float64(k)) + prams[0])
 		if k == 0 {
