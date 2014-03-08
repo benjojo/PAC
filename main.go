@@ -18,6 +18,7 @@ func main() {
 	file, _ := os.Open(os.Args[1])
 
 	output, _ := os.OpenFile("./out.wav", os.O_CREATE, 600)
+	outputpac, _ := os.OpenFile("./out.pac", os.O_CREATE, 600)
 
 	reader := wav.NewReader(file)
 
@@ -53,7 +54,9 @@ func main() {
 			SampleBlock[SamplePointer] = float64(MonoVal)
 			SamplePointer++
 			if SamplePointer == 8 {
-				GetPolyResults([]float64{0, 1, 2, 3, 4, 5, 6, 7}, SampleBlock)
+				out := GetPolyResults([]float64{0, 1, 2, 3, 4, 5, 6, 7}, SampleBlock)
+				Line := fmt.Sprintf("%f,%f,%f,%f,%f\n", out[0], out[1], out[2], out[3], out[4])
+				outputpac.Write([]byte(Line))
 				SamplePointer = 0
 			}
 			sam.Values[0] = L
