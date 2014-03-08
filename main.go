@@ -15,7 +15,6 @@ import (
 )
 
 var EncodeBlockSize int = 8
-var LastBlockSample int = 0
 var PolySize int = 5
 
 func main() {
@@ -148,6 +147,8 @@ func Decode(filename, OutputFile string) {
 	}
 	writer.WriteSamples(samplez)
 }
+
+var LastBlockSample int = 0 // temp var to smooth stuff out
 
 func GetSamplesFromPoly(prams []float64) (out []int) {
 	out = make([]int, EncodeBlockSize)
