@@ -147,10 +147,10 @@ func GetSamplesFromPoly(prams []float64) (out []int) {
 	out = make([]int, EncodeBlockSize)
 	for k, _ := range out {
 		out[k] = int(
-			(5 * math.Pow(float64(k), 4)) +
-				(4 * math.Pow(float64(k), 3)) +
-				(3 * math.Pow(float64(k), 2)) +
-				(2 * float64(k)) + 1)
+			(prams[4] * math.Pow(float64(k), 4)) +
+				(prams[3] * math.Pow(float64(k), 3)) +
+				(prams[2] * math.Pow(float64(k), 2)) +
+				(prams[1] * float64(k)) + prams[0])
 	}
 	return out
 }
