@@ -21,7 +21,7 @@ func main() {
 	reader := wav.NewReader(file)
 
 	// Settings for output
-	var numSamples uint32 = 9999
+	var numSamples uint32 = 999999
 	var numChannels uint16 = 2
 	var sampleRate uint32 = 44100
 	var bitsPerSample uint16 = 16
