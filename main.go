@@ -14,8 +14,8 @@ import (
 	"strings"
 )
 
-var EncodeBlockSize int = 8
-var PolySize int = 4
+var EncodeBlockSize int = 16
+var PolySize int = 5
 
 func main() {
 	// I have no idea what I am doing
@@ -84,7 +84,7 @@ func Encode(filename, OutputFile string) {
 			SamplePointer++
 			if SamplePointer == EncodeBlockSize {
 				out := GetPolyResults(XBlock, SampleBlock)
-				Line := fmt.Sprintf("%f,%f,%f,%f\n", out[0], out[1], out[2], out[3])
+				Line := fmt.Sprintf("%f,%f,%f,%f,%f\n", out[0], out[1], out[2], out[3], out[4])
 				outputpac.Write([]byte(Line))
 				SamplePointer = 0
 			}
@@ -118,7 +118,7 @@ func Decode(filename, OutputFile string) {
 	lines := strings.Split(string(b), "\n")
 	samplez := make([]wav.Sample, 0)
 
-	for _, line := range lines {
+	for ln, line := range lines {
 		var prams []float64
 		prams = make([]float64, PolySize)
 		bits := strings.Split(line, ",")
@@ -127,7 +127,7 @@ func Decode(filename, OutputFile string) {
 			if len(bits) == 1 {
 				break
 			}
-			log.Fatal("Invalid PAC file. ", len(bits))
+			log.Fatal("Invalid PAC file. ", len(bits), "on line", ln)
 		}
 		for k, v := range bits {
 			prams[k], e = strconv.ParseFloat(v, 64)
@@ -154,8 +154,8 @@ func GetSamplesFromPoly(prams []float64) (out []int) {
 	out = make([]int, EncodeBlockSize)
 	for k, _ := range out {
 		out[k] = int(
-
-			(prams[3] * math.Pow(float64(k), 3)) +
+			(prams[4] * math.Pow(float64(k), 4)) +
+				(prams[3] * math.Pow(float64(k), 3)) +
 				(prams[2] * math.Pow(float64(k), 2)) +
 				(prams[1] * float64(k)) + prams[0])
 		if k == 0 {
